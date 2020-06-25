@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html  lang="en">
+<head>
+    <meta charset="utf-8" />
+
+<meta name="generator" content="Hexo 4.2.0" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+<title>一个用于爬取YorkBBS住房信息的NodeJS动态网页爬虫 - Tony&#39;s Blog</title>
+
+
+    <meta name="description" content="1.目的这个project用于爬取YorkBBS上完整的住房信息，并将其生成一个html，放入apache2的服务器下，使之可以在任何地方查看筛选好的信息。 2.网页解析以及数据接口获取YorkBBS采用的是动态网页加载，如果采用http解析器直接采集DOM结构的话，只能得到一个参杂了JS代码的HTML结构。这里有两个思路：  使用诸如PhantomnJS之类的库，等待网页加载完成才进行DOM读取">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一个用于爬取YorkBBS住房信息的NodeJS动态网页爬虫">
+<meta property="og:url" content="http://yoursite.com/blog/2018/07/02/%E4%B8%80%E4%B8%AA%E7%94%A8%E4%BA%8E%E7%88%AC%E5%8F%96YorkBBS%E4%BD%8F%E6%88%BF%E4%BF%A1%E6%81%AF%E7%9A%84NodeJS%E5%8A%A8%E6%80%81%E7%BD%91%E9%A1%B5%E7%88%AC%E8%99%AB/index.html">
+<meta property="og:site_name" content="Tony&#39;s Blog">
+<meta property="og:description" content="1.目的这个project用于爬取YorkBBS上完整的住房信息，并将其生成一个html，放入apache2的服务器下，使之可以在任何地方查看筛选好的信息。 2.网页解析以及数据接口获取YorkBBS采用的是动态网页加载，如果采用http解析器直接采集DOM结构的话，只能得到一个参杂了JS代码的HTML结构。这里有两个思路：  使用诸如PhantomnJS之类的库，等待网页加载完成才进行DOM读取">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://yoursite.com/blog/images/og_image.png">
+<meta property="article:published_time" content="2018-07-03T02:02:10.000Z">
+<meta property="article:modified_time" content="2020-01-28T05:48:19.362Z">
+<meta property="article:author" content="Tony He">
+<meta property="article:tag" content="javascript">
+<meta property="article:tag" content="nodejs">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/blog/images/og_image.png">
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.7.2/css/bulma.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:400,600|Source+Code+Pro">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/atom-one-light.css">
+
+
+    
+    
+<style>body>.footer,body>.navbar,body>.section{opacity:0}</style>
+
+    
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css">
+
+    
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.css">
+
+    
+    
+    
+    
+<link rel="stylesheet" href="/blog/css/back-to-top.css">
+
+    
+    
+    
+    
+    
+    
+    
+    <link rel="stylesheet" href="/blog/css/progressbar.css">
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+    
+    
+    
+
+
+<link rel="stylesheet" href="/blog/css/style.css">
+</head>
+<body class="is-2-column">
+    <nav class="navbar navbar-main">
+    <div class="container">
+        <div class="navbar-brand is-flex-center">
+            <a class="navbar-item navbar-logo" href="/blog/">
+            
+                <img src="/blog/images/logo.png" alt="一个用于爬取YorkBBS住房信息的NodeJS动态网页爬虫" height="28">
+            
+            </a>
+        </div>
+        <div class="navbar-menu">
+            
+            <div class="navbar-start">
+                
+                <a class="navbar-item"
+                href="/blog/">Home</a>
+                
+                <a class="navbar-item"
+                href="/blog/archives">Archives</a>
+                
+                <a class="navbar-item"
+                href="/blog/categories">Categories</a>
+                
+                <a class="navbar-item"
+                href="/blog/projects">Projects</a>
+                
+                <a class="navbar-item"
+                href="/blog/Gallary">Gallery</a>
+                
+                <a class="navbar-item"
+                href="/blog/tags">Tags</a>
+                
+                <a class="navbar-item"
+                href="/blog/about">About</a>
+                
+            </div>
+            
+            <div class="navbar-end">
+                
+                    
+                    <a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/Maolon">
+                        
+                        <i class="fab fa-github"></i>
+                        
+                    </a>
+                    
+                
+                
+                
+                <a class="navbar-item search" title="Search" href="javascript:;">
+                    <i class="fas fa-search"></i>
+                </a>
+                
+            </div>
+        </div>
+    </div>
+</nav>
+    
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column is-8-tablet is-9-desktop is-9-widescreen has-order-2 column-main">
+<div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2018-07-03T02:02:10.000Z">2018-07-02</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/blog/categories/Crawler/">Crawler</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    12 minutes read (About 1826 words)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                一个用于爬取YorkBBS住房信息的NodeJS动态网页爬虫
+            
+        </h1>
+        <div class="content">
+            <h4 id="1-目的"><a href="#1-目的" class="headerlink" title="1.目的"></a>1.目的</h4><p>这个project用于爬取YorkBBS上完整的住房信息，并将其生成一个html，放入apache2的服务器下，使之可以在任何地方查看筛选好的信息。</p>
+<h4 id="2-网页解析以及数据接口获取"><a href="#2-网页解析以及数据接口获取" class="headerlink" title="2.网页解析以及数据接口获取"></a>2.网页解析以及数据接口获取</h4><p>YorkBBS采用的是动态网页加载，如果采用http解析器直接采集DOM结构的话，只能得到一个参杂了JS代码的HTML结构。这里有两个思路：</p>
+<ol>
+<li><p>使用诸如PhantomnJS之类的库，等待网页加载完成才进行DOM读取</p>
+</li>
+<li><p>使用Chrome DevTool,通过Network功能查找和服务器端的通讯从而判断出数据的API接口，并通过伪造Header获取相应的信息</p>
+<p>这里我们采用第二个思路，首先打开Chrome DevTool 的Network标签，刷新目标网页，观察和服务器目标中的通讯。我们很快发现了这个Header:</p>
+<a id="more"></a> 
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Request URL: http://house.yorkbbs.ca/house.search/api/Rent/Filter</span><br><span class="line">Request Method: POST</span><br><span class="line">Status Code: 200 OK</span><br><span class="line">Remote Address: 104.25.35.111:80</span><br><span class="line">Referrer Policy: no-referrer-when-downgrade</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<p>​      通过Response我们能够确认这是我们的目标信息：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="attr">"success"</span>:<span class="literal">true</span>,<span class="attr">"result"</span>:&#123;<span class="attr">"rowCount"</span>:<span class="number">4289</span>,<span class="attr">"pageIndex"</span>:<span class="number">1</span>,<span class="attr">"pageCount"</span>:<span class="number">215</span>,<span class="attr">"list"</span>:[&#123;<span class="attr">"id"</span>:<span class="number">4000065874</span>,<span class="attr">"title"</span>:<span class="string">"DT湖边高层condo出租一单间"</span>,<span class="attr">"image"</span>:<span class="string">"https://i.ybbs.ca/media/large/37198eafc3d9d3ecda84ea4b9ad26b9c.jpeg"</span>,<span class="attr">"province"</span>:<span class="string">"Ontario"</span>,<span class="attr">"city"</span>:<span class="string">"Toronto"</span>,<span class="attr">"region"</span>:<span class="string">"Toronto"</span>,<span class="attr">"intersection1"</span>:<span class="string">"spadina"</span>,<span class="attr">"intersection2"</span>:<span class="string">"fortyork"</span>,<span class="attr">"price"</span>:<span class="number">1100.0</span>,<span class="attr">"liveInDate"</span>:<span class="string">"2018-09-01T00:00:00"</span>,<span class="attr">"isCanLiveInNow"</span>:<span class="literal">false</span>,<span class="attr">"userType"</span>:<span class="number">0</span>,<span class="attr">"userId"</span>:<span class="number">840509</span>,<span class="attr">"userName"</span>:<span class="string">"larrrrry0721"</span>,<span class="attr">"refreshTime"</span>:<span class="string">"4分钟前更新"</span>,<span class="attr">"linkMan"</span>:<span class="string">"larrrrry0721"</span>,<span class="attr">"details"</span>:<span class="string">"禁养宠物 | 禁室内抽烟 | 少煮食 | 有家具 | 游泳池 | 健身房"</span>,<span class="attr">"detailList"</span>:&#123;<span class="attr">"1001"</span>:[<span class="string">"Condo"</span>],<span class="attr">"1002"</span>:[<span class="string">"单间"</span>],<span class="attr">"1003"</span>:[<span class="string">"3房"</span>],<span class="attr">"1004"</span>:[<span class="string">"1厅"</span>],<span class="attr">"1005"</span>:[<span class="string">"无车位"</span>],<span class="attr">"1008"</span>:[<span class="string">"3个月"</span>],<span class="attr">"1010"</span>:[<span class="string">"禁养宠物"</span>,<span class="string">"禁室内抽烟"</span>,<span class="string">"少煮食"</span>,<span class="string">"有家具"</span>,<span class="string">"游泳池"</span>,<span class="string">"健身房"</span>]&#125;,<span class="attr">"enName"</span>:<span class="string">""</span>,<span class="attr">"priceNegotiable"</span>:<span class="literal">false</span>,<span class="attr">"orderNum"</span>:<span class="number">1000</span>&#125;&#125;,<span class="string">"error"</span>:<span class="literal">null</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么下一步是如何获取这些信息。</p>
+<p>要获取相应的信息，我们只需要和正常对API接口进行请求一样就可以了，这里唯一的区别是我们并不知道该使用什么参数作为请求。再次检查Header,可以发现Header有个 Request Payload的属性，那么通过查看里面的内容。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"options"</span>: []</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>只要把这个payload加入对网址的请求当中，就可以获得如上图的信息了。</p>
+<p>那么如何加入更多的参数选项？首先要试探新的参数，随意改变一个参数，再次对网页请求response。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"options"</span>: [],</span><br><span class="line">  <span class="attr">"regionId"</span>: <span class="literal">null</span>,</span><br><span class="line">  <span class="attr">"orderBy"</span>: <span class="number">0</span>,</span><br><span class="line">  <span class="attr">"pageIndex"</span>: <span class="number">2</span>,</span><br><span class="line">  <span class="attr">"pageSize"</span>: <span class="number">20</span>,</span><br><span class="line">  <span class="attr">"isAsc"</span>: <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">"keyword"</span>: <span class="string">""</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此时可以看到参数变化了，这意味着我们可以随意改变这些参数进行符合我们期望的请求。</p>
+<p>我们的目的是一次性抓取YorkBBS上所有的住房信息，那么只要简单的将pageIndex改为1并且把pageSize改为超出目前所有住房信息的数量，就能轻松一次性抓取论坛上所有的住房信息。</p>
+<p>首先载入NodeJS上的http解析器superagent。<code>const request = require(&#39;superagent&#39;)</code> </p>
+<p>使用superagent的promise结构进行http请求</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">request</span><br><span class="line">    .post(url)</span><br><span class="line">    .type(<span class="string">'application/json'</span>)</span><br><span class="line">    .send(&#123;<span class="string">"options"</span>: [],<span class="string">"regionId"</span>: <span class="literal">null</span>,<span class="string">"orderBy"</span>: <span class="number">0</span>,<span class="string">"pageIndex"</span>: <span class="number">1</span>,<span class="string">"pageSize"</span>: <span class="number">50</span>,<span class="string">"isAsc"</span>: <span class="literal">false</span>,<span class="string">"keyword"</span>: <span class="string">"北约克"</span>&#125;) <span class="comment">// request payload</span></span><br><span class="line">    .then(<span class="function">(<span class="params">res</span>)=&gt;</span>res.toJSON())</span><br></pre></td></tr></table></figure>
+
+<p>这里.type决定了请求的类型，而.send则决定了payload。在取得response后将response转为Json结构以供下一步使用。</p>
+<h4 id="3-读取并解析和过滤信息"><a href="#3-读取并解析和过滤信息" class="headerlink" title="3.读取并解析和过滤信息"></a>3.读取并解析和过滤信息</h4><h5 id="1-读取信息"><a href="#1-读取信息" class="headerlink" title="1.读取信息"></a>1.读取信息</h5><p>因为superagent采用了promise的结构，所以上一步resolve的结果直接传入下一步。</p>
+<p>在这里我们观察json的结构，可以发现有</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">text:"&#123;"success":true,"result":&#123;"rowCount":623,"pageIndex":1,"pageCount":623,"list":[&#123;"id":4000063147,"title":"多伦多北约克屋美价廉独立屋长短期出租","image":"https://i.ybbs.ca/media/large/2910b4198098b5aefa560a6340f4703d.jpeg","province":"Ontario","city":"Toronto","region":"Toronto","intersection1":"bayview","intersection2":"finch","price":1190.0,"liveInDate":null,"isCanLiveInNow":true,"userType":0,"userId":112843,"userName":"cmidc","refreshTime":"44分钟前更新","linkMan":"cmidc","details":"单身女性 | 单身男性 | 夫妻情侣 | 三口之家","detailList":&#123;"1001":["独立屋"],"1002":["套间"],"1003":["1房"],"1004":["1厅"],"1005":["1车位"],"1006":["独卫"],"1008":["不限制"],"1009":["单身女性","单身男性","夫妻情侣","三口之家"],"1010":["禁养宠物","禁室内抽烟","有家具","可短租","包水电"]&#125;,"enName":"","priceNegotiable":false,"orderNum":1000&#125;]&#125;,"error":null&#125;"</span><br></pre></td></tr></table></figure>
+
+<p>如果直接调用上一步的res.text,则实际得到的是一个String 而不是json object，所以我们还要进行进一步转换。将res赋值为res.text,并使用<code>Json.parse(res)</code>将其转为json object。</p>
+<h5 id="2-解析信息"><a href="#2-解析信息" class="headerlink" title="2.解析信息"></a>2.解析信息</h5><p>此时，我们可以发现这个json object中包含数个我们感兴趣的信息。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">city: "Toronto"</span><br><span class="line">detailList: Object &#123;1001: Array(1), 1002: Array(1), 1003: Array(1), …&#125;</span><br><span class="line">details: "单身女性 | 单身男性 | 夫妻情侣 | 三口之家"</span><br><span class="line">enName: ""</span><br><span class="line">id: 4000063147</span><br><span class="line">image: "https://i.ybbs.ca/media/large/2910b4198098b5aefa560a6340f4703d.jpeg"</span><br><span class="line">intersection1: "bayview"</span><br><span class="line">intersection2: "finch"</span><br><span class="line">isCanLiveInNow: true</span><br><span class="line">linkMan: "cmidc"</span><br><span class="line">liveInDate: null</span><br><span class="line">orderNum: 1000</span><br><span class="line">price: 1190</span><br><span class="line">priceNegotiable: false</span><br><span class="line">province: "Ontario"</span><br><span class="line">refreshTime: "44分钟前更新"</span><br><span class="line">region: "Toronto"</span><br><span class="line">title: "多伦多北约克屋美价廉独立屋长短期出租"</span><br><span class="line">userId: 112843</span><br><span class="line">userName: "cmidc"</span><br><span class="line">userType: 0</span><br></pre></td></tr></table></figure>
+
+<p> 比如detailList,title,region,city。下一步我们将获取这些信息并将其过滤。</p>
+<h5 id="3-过滤信息"><a href="#3-过滤信息" class="headerlink" title="3.过滤信息"></a>3.过滤信息</h5><p>我们采取正则表达式的方法来判断object中是否有包含我们感兴趣的信息。</p>
+<p>这里先建立过滤规则：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> pattern1 = <span class="keyword">new</span> <span class="built_in">RegExp</span>(<span class="string">"整层"</span>,<span class="string">"i"</span>);   <span class="comment">//1002 整层</span></span><br><span class="line"><span class="keyword">let</span> pattern2 = <span class="keyword">new</span> <span class="built_in">RegExp</span>(<span class="string">"[23]房"</span>,<span class="string">"i"</span>); <span class="comment">//1003 3/2 房</span></span><br><span class="line"><span class="keyword">let</span> pattern3 = <span class="keyword">new</span> <span class="built_in">RegExp</span>(<span class="string">"1厅"</span>,<span class="string">"i"</span>);      <span class="comment">//1004 1厅</span></span><br><span class="line"><span class="keyword">let</span> pattern4 = <span class="keyword">new</span> <span class="built_in">RegExp</span>(<span class="string">"无车位"</span>,<span class="string">"i"</span>);       <span class="comment">//1005 1车位</span></span><br></pre></td></tr></table></figure>
+
+<p>这里’”i”意味着无视大小写，而[23]房意味着选取2或者3房的条件，当我们面临多个过滤条件的时候可以采用<code>|</code>隔开条件。</p>
+<p>通过pattern.test(obj)我们可以得到一个<code>true</code>或者<code>false</code>的<code>boolean</code>。</p>
+<p>但是我们可以发现只有<code>refreshTime</code>这一行是比较特殊的数据，当时间小于1小时的时候，它会返回<code>xx分钟前更新</code>，而当时间小于一天的时候它会返回<code>xx小时前更新</code>，当时间大于1天小于7天的时候它会返回<code>xx天前更新</code>，而当时间大于7天时，它会返回<code>2018年x月x日 更新</code>。</p>
+<p>这使得数据解析变得困难，所幸我们的筛选条件是只需要30天以内的信息，那么我们关注的是最后一种数据格式。这里我们使用JS自带的Date()方法来进行数据比较。</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">dateMatch</span>(<span class="params">date</span>)</span>&#123;</span><br><span class="line">     <span class="keyword">let</span> pattern = <span class="keyword">new</span> <span class="built_in">RegExp</span>(<span class="string">"分|天|小时"</span>); </span><br><span class="line">     <span class="keyword">if</span>(pattern.test(date))&#123;</span><br><span class="line">     <span class="keyword">return</span> <span class="literal">true</span>;    <span class="comment">//7天内的时间直接返回true</span></span><br><span class="line">     &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">       <span class="keyword">let</span> end = date.slice(<span class="number">0</span>,<span class="number">-4</span>);</span><br><span class="line">       end=end.replace(<span class="regexp">/[\u4e00-\u9fa5]/g</span>,<span class="string">'-'</span>);</span><br><span class="line">       <span class="keyword">let</span> olddate = <span class="built_in">Date</span>.parse(end); <span class="comment">//getMillis from that day</span></span><br><span class="line">       <span class="keyword">let</span> today = <span class="built_in">Date</span>.parse(<span class="built_in">Date</span>()); <span class="comment">//getMillis from today</span></span><br><span class="line">       <span class="keyword">let</span> days = <span class="built_in">Math</span>.floor((today-olddate)/<span class="number">86400000</span>);</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">if</span>(days&lt;=<span class="number">30</span>)&#123;  <span class="comment">//只取得30天内的信息</span></span><br><span class="line">      <span class="keyword">return</span> <span class="literal">true</span>; </span><br><span class="line">     &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">       <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里我们首先用正则方法筛选掉分，小时和天的数据，只留下日期格式。首先将多余的<code>日 更新</code>字符去掉，然后使用replace方法替换中文的部分成<code>-</code>。这样数据就是标准的日期格式了。然后使用JS自带的Date.parse方法就能够得到一个从1971年1月1日到该天数的毫秒数。同理，使用Date()方法取得现在的时间，并将其转换为毫秒数，<code>let days = Math.floor((today-olddate)/86400000);</code>这里86400000是一天的毫秒数。这样我们就得到了天数，将其与条件比较，不符合的抛弃。</p>
+<h4 id="4-生成HTML"><a href="#4-生成HTML" class="headerlink" title="4.生成HTML"></a>4.生成HTML</h4><p>此时符合条件的数据已经筛选完毕，将其生成HTML。</p>
+
+        </div>
+        
+        <div class="level is-size-7 is-uppercase">
+            <div class="level-start">
+                <div class="level-item">
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/blog/tags/javascript/" rel="tag">javascript</a>, <a class="has-link-grey -link" href="/blog/tags/nodejs/" rel="tag">nodejs</a>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+
+
+
+
+<div class="card card-transparent">
+    <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        <div class="level-start">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/blog/2018/07/04/%E4%B8%80%E7%A7%8D%E5%9F%BA%E4%BA%8EN-Gram%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%A8%A1%E7%B3%8A%E5%AD%97%E7%AC%A6%E4%B8%B2%E7%9B%B8%E4%BC%BC%E5%BA%A6%E5%8C%B9%E9%85%8D%E5%AE%9E%E7%8E%B0/">
+                <i class="level-item fas fa-chevron-left"></i>
+                <span class="level-item">一种基于N-Gram模型的模糊字符串相似度匹配实现</span>
+            </a>
+        </div>
+        
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/blog/2018/06/27/%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8Android%20Studio%E8%87%AA%E5%B8%A6%E7%9A%84http%E8%A7%A3%E6%9E%90%E5%88%B6%E4%BD%9C%E7%AE%80%E5%8D%95%E7%9A%84%E9%9D%99%E6%80%81%E7%BD%91%E9%A1%B5%E7%88%AC%E8%99%ABAPP/">
+                <span class="level-item">如何使用Android Studio自带的http解析器制作简单的静态网页爬虫APP</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
+    </div>
+</div>
+
+
+</div>
+                
+
+
+
+
+<div class="column is-4-tablet is-4-desktop is-4-widescreen  has-order-1 column-left ">
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <nav class="level">
+            <div class="level-item has-text-centered" style="flex-shrink: 1">
+                <div>
+                    
+                    <figure class="image is-128x128 has-mb-6">
+                        <img class="is-rounded" src="/blog/images/17433616.jpeg" alt="Tony He">
+                    </figure>
+                    
+                    <p class="is-size-4 is-block">
+                        Tony He
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-block">
+                        Web Developer
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-flex is-flex-center has-text-grey">
+                        <i class="fas fa-map-marker-alt has-mr-7"></i>
+                        <span>Toronto,ON</span>
+                    </p>
+                    
+                </div>
+            </div>
+        </nav>
+        <nav class="level is-mobile">
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        Posts
+                    </p>
+                    <a href="/blog/archives">
+                        <p class="title has-text-weight-normal">
+                            14
+                        </p>
+                    </a>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        Categories
+                    </p>
+                    <a href="/blog/categories">
+                        <p class="title has-text-weight-normal">
+                            9
+                        </p>
+                    </a>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        Tags
+                    </p>
+                    <a href="/blog/tags">
+                        <p class="title has-text-weight-normal">
+                            21
+                        </p>
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="level">
+            <a class="level-item button is-link is-rounded" href="https://github.com/maolon" target="_blank" rel="noopener">
+                Follow</a>
+        </div>
+        
+        
+        
+        <div class="level is-mobile">
+            
+            <a class="level-item button is-white is-marginless" target="_blank" rel="noopener"
+                title="Github" href="https://github.com/maolon">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" rel="noopener"
+                title="RSS" href="/blog/">
+                
+                <i class="fas fa-rss"></i>
+                
+            </a>
+            
+        </div>
+        
+    </div>
+</div>
+    
+        
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                Categories
+            </h3>
+            <ul class="menu-list">
+            <li>
+        <a class="level is-marginless" href="/blog/categories/Crawler/">
+            <span class="level-start">
+                <span class="level-item">Crawler</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">2</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/blog/categories/Crawler/Andriod/">
+            <span class="level-start">
+                <span class="level-item">Andriod</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li></ul></li><li>
+        <a class="level is-marginless" href="/blog/categories/ML/">
+            <span class="level-start">
+                <span class="level-item">ML</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/blog/categories/NLP/">
+            <span class="level-start">
+                <span class="level-item">NLP</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/blog/categories/Seminar/">
+            <span class="level-start">
+                <span class="level-item">Seminar</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/blog/categories/WEB/">
+            <span class="level-start">
+                <span class="level-item">WEB</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">4</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/blog/categories/WEB/React/">
+            <span class="level-start">
+                <span class="level-item">React</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">4</span>
+            </span>
+        </a></li></ul></li><li>
+        <a class="level is-marginless" href="/blog/categories/Web/">
+            <span class="level-start">
+                <span class="level-item">Web</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/blog/categories/algorithm/">
+            <span class="level-start">
+                <span class="level-item">algorithm</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">4</span>
+            </span>
+        </a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            Tag Cloud
+        </h3>
+        <a href="/blog/tags/Array/" style="font-size: 10px;">Array</a> <a href="/blog/tags/Basic/" style="font-size: 10px;">Basic</a> <a href="/blog/tags/Chapter-2/" style="font-size: 10px;">Chapter 2</a> <a href="/blog/tags/DP/" style="font-size: 15px;">DP</a> <a href="/blog/tags/Greedy/" style="font-size: 10px;">Greedy</a> <a href="/blog/tags/Hands-on-ML/" style="font-size: 10px;">Hands on ML</a> <a href="/blog/tags/Jsoup/" style="font-size: 10px;">Jsoup</a> <a href="/blog/tags/LinearSearch/" style="font-size: 10px;">LinearSearch</a> <a href="/blog/tags/List/" style="font-size: 10px;">List</a> <a href="/blog/tags/Note/" style="font-size: 20px;">Note</a> <a href="/blog/tags/Performance-Optimization/" style="font-size: 10px;">Performance Optimization</a> <a href="/blog/tags/Recursive/" style="font-size: 10px;">Recursive</a> <a href="/blog/tags/Redux/" style="font-size: 15px;">Redux</a> <a href="/blog/tags/Seminar/" style="font-size: 10px;">Seminar</a> <a href="/blog/tags/Structured-Light/" style="font-size: 10px;">Structured Light</a> <a href="/blog/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/blog/tags/filter/" style="font-size: 10px;">filter</a> <a href="/blog/tags/java/" style="font-size: 15px;">java</a> <a href="/blog/tags/javascript/" style="font-size: 10px;">javascript</a> <a href="/blog/tags/ngram/" style="font-size: 10px;">ngram</a> <a href="/blog/tags/nodejs/" style="font-size: 10px;">nodejs</a>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            Archives
+        </h3>
+        <ul class="menu-list">
+        
+        <li>
+            <a class="level is-marginless" href="/blog/archives/2020/01/">
+                <span class="level-start">
+                    <span class="level-item">January 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/blog/archives/2019/11/">
+                <span class="level-start">
+                    <span class="level-item">November 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/blog/archives/2019/08/">
+                <span class="level-start">
+                    <span class="level-item">August 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/blog/archives/2019/07/">
+                <span class="level-start">
+                    <span class="level-item">July 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/blog/archives/2019/06/">
+                <span class="level-start">
+                    <span class="level-item">June 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/blog/archives/2019/05/">
+                <span class="level-start">
+                    <span class="level-item">May 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/blog/archives/2019/01/">
+                <span class="level-start">
+                    <span class="level-item">January 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/blog/archives/2018/08/">
+                <span class="level-start">
+                    <span class="level-item">August 2018</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/blog/archives/2018/07/">
+                <span class="level-start">
+                    <span class="level-item">July 2018</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/blog/archives/2018/06/">
+                <span class="level-start">
+                    <span class="level-item">June 2018</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                Tags
+            </h3>
+            <div class="field is-grouped is-grouped-multiline">
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/blog/tags/Array/">
+                        <span class="tag">Array</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/blog/tags/Basic/">
+                        <span class="tag">Basic</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/blog/tags/Chapter-2/">
+                        <span class="tag">Chapter 2</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/blog/tags/DP/">
+                        <span class="tag">DP</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/blog/tags/Greedy/">
+                        <span class="tag">Greedy</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/blog/tags/Hands-on-ML/">
+                        <span class="tag">Hands on ML</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/blog/tags/Jsoup/">
+                        <span class="tag">Jsoup</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/blog/tags/LinearSearch/">
+                        <span class="tag">LinearSearch</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/blog/tags/List/">
+                        <span class="tag">List</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/blog/tags/Note/">
+                        <span class="tag">Note</span>
+                        <span class="tag is-grey">4</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/blog/tags/Performance-Optimization/">
+                        <span class="tag">Performance Optimization</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/blog/tags/Recursive/">
+                        <span class="tag">Recursive</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/blog/tags/Redux/">
+                        <span class="tag">Redux</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/blog/tags/Seminar/">
+                        <span class="tag">Seminar</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/blog/tags/Structured-Light/">
+                        <span class="tag">Structured Light</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/blog/tags/TCP/">
+                        <span class="tag">TCP</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/blog/tags/filter/">
+                        <span class="tag">filter</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/blog/tags/java/">
+                        <span class="tag">java</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/blog/tags/javascript/">
+                        <span class="tag">javascript</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/blog/tags/ngram/">
+                        <span class="tag">ngram</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/blog/tags/nodejs/">
+                        <span class="tag">nodejs</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+        <div class="column-right-shadow is-hidden-widescreen ">
+        
+        </div>
+    
+</div>
+
+                
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+    <div class="container">
+        <div class="level">
+            <div class="level-start has-text-centered-mobile">
+                <a class="footer-logo is-block has-mb-6" href="/blog/">
+                
+                    <img src="/blog/images/logo.png" alt="一个用于爬取YorkBBS住房信息的NodeJS动态网页爬虫" height="28">
+                
+                </a>
+                <p class="is-size-7">
+                &copy; 2020 Tony He&nbsp;
+                Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> & <a
+                        href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a>
+                
+                </p>
+            </div>
+            <div class="level-end">
+            
+                <div class="field has-addons is-flex-center-mobile has-mt-5-mobile is-flex-wrap is-flex-middle">
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/">
+                        
+                        <i class="fab fa-creative-commons"></i>
+                        
+                    </a>
+                </p>
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/">
+                        
+                        <i class="fab fa-creative-commons-by"></i>
+                        
+                    </a>
+                </p>
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" rel="noopener" title="GitHub" href="https://github.com/maolon">
+                        
+                        <i class="fab fa-github"></i>
+                        
+                    </a>
+                </p>
+                
+                </div>
+            
+            </div>
+        </div>
+    </div>
+</footer>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script>
+<script>moment.locale("en");</script>
+
+
+<script>
+var IcarusThemeSettings = {
+    site: {
+        url: 'http://yoursite.com/blog',
+        external_link: {"enable":true,"exclude":[]}
+    },
+    article: {
+        highlight: {
+            clipboard: true,
+            fold: 'unfolded'
+        }
+    }
+};
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script>
+
+
+
+
+
+<script src="/blog/js/animation.js"></script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script>
+<script src="/blog/js/gallery.js" defer></script>
+
+
+
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update
+            my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.js" defer></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        });
+    });
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.5/unpacked/MathJax.js?config=TeX-MML-AM_CHTML" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    MathJax.Hub.Config({
+        'HTML-CSS': {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+});
+</script>
+
+
+<a id="back-to-top" title="Back to Top" href="javascript:;">
+    <i class="fas fa-chevron-up"></i>
+</a>
+<script src="/blog/js/back-to-top.js" defer></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script src="/blog/js/main.js" defer></script>
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="Type something..." />
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: 'Posts',
+                PAGES: 'Pages',
+                CATEGORIES: 'Categories',
+                TAGS: 'Tags',
+                UNTITLED: '(Untitled)',
+            },
+            CONTENT_URL: '/blog/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+<script src="/blog/js/insight.js" defer></script>
+<link rel="stylesheet" href="/blog/css/search.css">
+<link rel="stylesheet" href="/blog/css/insight.css">
+    
+</body>
+</html>

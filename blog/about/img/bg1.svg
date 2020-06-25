@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1659.8" height="704.18" viewBox="0 0 1659.8 704.18">
+  <g id="图层_1" data-name="图层 1">
+    <g style="opacity: 0.6900000000000001">
+      <rect x="1399.39" y="260.74" width="126.23" height="126.69" transform="translate(617.87 1505.55) rotate(-72.49)" style="fill: #62d1c1"/>
+    </g>
+    <g style="opacity: 0.6900000000000001">
+      <path d="M1428.89,256.27,1551.79,295l-38.62,122.45-122.9-38.76,38.62-122.45m-.65-1.26L1389,379.37l124.81,39.37,39.23-124.36L1428.24,255Z" transform="translate(-95.63 -115.82)" style="fill: #7accc4"/>
+    </g>
+    <line x1="1417.87" y1="302.68" x2="1479.37" y2="365.18" style="fill: #ed6969;stroke: #ed6969;stroke-miterlimit: 10;stroke-width: 2px;opacity: 0.6900000000000001"/>
+    <g style="opacity: 0.6900000000000001">
+      <rect x="1534.94" y="492" width="62.95" height="63.02" transform="translate(-125.13 832.82) rotate(-33.4)" style="fill: #ed6969"/>
+    </g>
+    <g style="opacity: 0.32">
+      <rect x="1439.65" y="627.74" width="29.47" height="29.5" transform="translate(-153.89 36.85) rotate(-5.89)" style="fill: #ed6969"/>
+    </g>
+    <line x1="1371.37" y1="512.18" x2="1461.37" y2="451.18" style="fill: #ed6969;stroke: #ed6969;stroke-miterlimit: 10;stroke-width: 2px;opacity: 0.24"/>
+    <g style="opacity: 0.6900000000000001">
+      <rect x="1645.67" y="153.81" width="69.22" height="69.47" transform="translate(78.04 840.19) rotate(-33.4)" style="fill: #62d1c1"/>
+    </g>
+    <g style="opacity: 0.6900000000000001">
+      <rect x="1716.2" y="251.39" width="33.44" height="33.47" transform="translate(608.59 1572.41) rotate(-62.88)" style="fill: #ed6969"/>
+    </g>
+  </g>
+  <g id="图层_2" data-name="图层 2">
+    <g style="opacity: 0.6900000000000001">
+      <rect x="146.35" y="166" width="205.64" height="204.89" transform="translate(-176.83 -5.48) rotate(-21.56)" style="fill: #7accc4"/>
+    </g>
+    <g style="opacity: 0.6900000000000001">
+      <path d="M314.33,121l84,212.7L184.85,418.07l-84-212.71L314.33,121m2.25-5.19L95.63,203.11l87,220.15,221-87.29-87-220.15Z" transform="translate(-95.63 -115.82)" style="fill: #7accc4"/>
+    </g>
+    <g style="opacity: 0.43">
+      <rect x="489.99" y="679.32" width="83.17" height="83.47" transform="translate(-428.69 370.94) rotate(-38.44)" style="fill: #47dee2"/>
+    </g>
+    <g style="opacity: 0.43">
+      <path d="M558.38,676.69l41,51.66-52.16,41.4-41-51.66,52.16-41.4m.64-5.62L500.6,717.45l46,57.92L605,729l-46-57.93Z" transform="translate(-95.63 -115.82)" style="fill: #47dee2"/>
+    </g>
+  </g>
+  <g id="图层_3" data-name="图层 3">
+    <g style="opacity: 0.33">
+      <rect x="1315.81" y="736.2" width="80.61" height="80.21" transform="translate(-162.47 14.82) rotate(-5.38)" style="fill: #62d1c1"/>
+    </g>
+    <g style="opacity: 0.6900000000000001">
+      <path d="M1384.62,726.87l7.58,80.5-80.91,7.6-7.58-80.5,80.91-7.6m.9-1.09-82.9,7.79,7.77,82.49,82.9-7.79-7.77-82.49Z" transform="translate(-95.63 -115.82)" style="fill: #7accc4"/>
+    </g>
+    <line x1="1207.24" y1="617.81" x2="1150.37" y2="569.18" style="fill: #ed6969;stroke: #ed6969;stroke-miterlimit: 10;stroke-width: 2px;opacity: 0.41000000000000003"/>
+    <g style="opacity: 0.14">
+      <polygon points="1178.58 569.44 1150.27 597.72 1121.9 569.4 1150.21 541.12 1178.58 569.44" style="fill: #ed6969"/>
+    </g>
+  </g>
+</svg>
