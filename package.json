@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "bun run build.ts",
+    "dev": "bun run build.ts --watch",
+    "preview": "bunx serve dist"
+  },
+  "devDependencies": {
+    "gray-matter": "^4.0.3",
+    "katex": "^0.16.44",
+    "marked": "^15.0.0",
+    "shiki": "^3.0.0"
+  }
+}

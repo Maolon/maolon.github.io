@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{title}}</title>
+  <meta name="description" content="{{description}}">
+  <link rel="canonical" href="{{canonical}}">
+  <meta property="og:title" content="{{title}}">
+  <meta property="og:description" content="{{description}}">
+  <meta property="og:type" content="{{og_type}}">
+  <meta property="og:url" content="{{canonical}}">
+  <meta property="og:site_name" content="Tony He">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{{title}}">
+  <meta name="twitter:description" content="{{description}}">
+  <link rel="alternate" type="application/rss+xml" title="Tony He" href="/feed.xml">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="data:,">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <a href="/" class="site-name">Tony He</a>
+      <ul class="nav-links">
+        <li><a href="/" {{nav_home}}>Home</a></li>
+        <li><a href="/posts/" {{nav_posts}}>Posts</a></li>
+        <li><a href="/tags/" {{nav_tags}}>Tags</a></li>
+        <li><a href="/about/" {{nav_about}}>About</a></li>
+        <li><button class="theme-toggle" aria-label="Toggle theme">~</button></li>
+      </ul>
+    </nav>
+
+    <main>
+      {{content}}
+    </main>
+
+    <footer>
+      &copy; {{year}} Tony He
+    </footer>
+  </div>
+
+  <script>
+    (function() {
+      var t = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+      var btn = document.querySelector('.theme-toggle');
+      btn.textContent = t === 'dark' ? '\u263E' : '\u263C';
+      btn.addEventListener('click', function() {
+        t = t === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', t);
+        localStorage.setItem('theme', t);
+        btn.textContent = t === 'dark' ? '\u263E' : '\u263C';
+      });
+    })();
+  </script>
+</body>
+</html>
