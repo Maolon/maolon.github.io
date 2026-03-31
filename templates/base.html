@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'dark')</script>
   <title>{{title}}</title>
   <meta name="description" content="{{description}}">
   <link rel="canonical" href="{{canonical}}">
@@ -42,8 +43,7 @@
 
   <script>
     (function() {
-      var t = localStorage.getItem('theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', t);
+      var t = document.documentElement.getAttribute('data-theme');
       var btn = document.querySelector('.theme-toggle');
       btn.textContent = t === 'dark' ? '\u263E' : '\u263C';
       btn.addEventListener('click', function() {
